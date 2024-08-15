@@ -35,4 +35,11 @@ jobs:
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
-      - run: npx nx affected -t test --update --exclude=front-legacy --parallel=2
+#      - run: npx nx affected -t test --update --exclude=front-legacy --parallel=2
+
+      - run: |
+          NX_CLOUD_DISTRIBUTED_EXECUTION=false npx nx-cloud record -- npx nx format:check &
+          declare -a pids
+          commands=('build' 'lint' 'test --update --exclude=front-legacy' 'e2e-ci --reporter=dot')
+          for cmd in "${commands[@]}"; do npx nx affected -t "$cmd" --parallel=2 & done
+          wait
